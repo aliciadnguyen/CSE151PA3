@@ -23,7 +23,7 @@ public class mainApplication {
                           {3, 2, 1} };
 
         SimpleMatrix X = new SimpleMatrix(ex);
-        SimpleMatrix hx = house.houseHoldersOnX(X);
+        house.houseHoldersOnX(X);
 
     }
 }	

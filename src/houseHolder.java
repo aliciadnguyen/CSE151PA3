@@ -9,15 +9,21 @@ import java.util.Arrays;
 
 public class houseHolder {
 
-    public SimpleMatrix houseHoldersOnX(SimpleMatrix x) {
+    SimpleMatrix rDiag;
+    SimpleMatrix Qacc;
+
+    public void houseHoldersOnX(SimpleMatrix x) {
         //R is used to store X, Q1X, Q2Q1X, ...
-        SimpleMatrix rDiag = new SimpleMatrix(x);
+        rDiag = new SimpleMatrix(x);
         SimpleMatrix vminus;
+
+        SimpleMatrix QiPrevious = SimpleMatrix.identity(rDiag.numRows());
 
         //For loop for i = 1 ~ d iterations, calculated Qi
         for(int i = 0; i < x.numCols(); i++) {
 
             // 1. Obtain target column (zi) -- first column of submatrix
+            // zi = [ Ri,i  Ri,i+1, ... , Ri, n ]
             double[][] zi = new double[rDiag.numRows()-i][1];
             System.out.print("ZI is : ");
             for(int j = i; j < rDiag.numRows(); j++) {
@@ -71,10 +77,17 @@ public class houseHolder {
             rDiag = QiPi.mult(rDiag);
             System.out.println("R array is " + rDiag);
 
-            SimpleMatrix Qacc = QiPi.transpose();
+            // Find Q accumlated
+            //SimpleMatrix QiPrevious = new SimpleMatrix(QiPi.numRows(), QiPi.numRows());
+            System.out.println("Q Prev is " + QiPrevious);
+            Qacc = (QiPi.mult(QiPrevious));
             System.out.println("Q accumlated is " + Qacc);
+
+            QiPrevious = Qacc.copy();
         }
 
-        return rDiag;
+        System.out.println("Final R is" + rDiag);
+        Qacc = Qacc.transpose();
+        System.out.println("Final Q is " + Qacc);
     }
 }
