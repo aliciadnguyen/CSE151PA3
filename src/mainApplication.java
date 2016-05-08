@@ -14,7 +14,7 @@ public class mainApplication {
         // Seed RNG
         rnd.setSeed(0);
 
-        houseHolder house = new houseHolder();
+        LinearRegression LR = new LinearRegression();
 
         double[][] ex = { {1, -1, -1},
                           {1, 2, 3},
@@ -23,7 +23,18 @@ public class mainApplication {
                           {3, 2, 1} };
 
         SimpleMatrix X = new SimpleMatrix(ex);
-        house.houseHoldersOnX(X);
+        LR.qr_decompose(X);
+
+        SimpleMatrix y = new SimpleMatrix(X);
+
+        double[][] upperR = { {1, 2, 1}, {0, 1, 2}, {0, 0, 1} };
+        double[][] Y = {{1}, {2}, {3}};
+
+        SimpleMatrix UR = new SimpleMatrix(upperR);
+        SimpleMatrix YY = new SimpleMatrix(Y);
+        System.out.println("Qacc is " + LR.Qacc);
+        LR.back_solve(YY, UR);
+        //LR.back_solve(LR.Qacc.transpose().mult(YY), LR.rDiag);
 
     }
 }	

@@ -3,40 +3,37 @@
  */
 
 import org.ejml.simple.SimpleMatrix;
-import sun.java2d.pipe.SpanShapeRenderer;
 
-import java.util.Arrays;
-
-public class houseHolder {
+public class LinearRegression {
 
     SimpleMatrix rDiag;
     SimpleMatrix Qacc;
 
-    public void houseHoldersOnX(SimpleMatrix x) {
+    public void qr_decompose(SimpleMatrix X_train) {
         //R is used to store X, Q1X, Q2Q1X, ...
-        rDiag = new SimpleMatrix(x);
+        rDiag = new SimpleMatrix(X_train);
         SimpleMatrix vminus;
 
         SimpleMatrix QiPrevious = SimpleMatrix.identity(rDiag.numRows());
 
         //For loop for i = 1 ~ d iterations, calculated Qi
-        for(int i = 0; i < x.numCols(); i++) {
+        for(int i = 0; i < X_train.numCols(); i++) {
 
             // 1. Obtain target column (zi) -- first column of submatrix
             // zi = [ Ri,i  Ri,i+1, ... , Ri, n ]
             double[][] zi = new double[rDiag.numRows()-i][1];
-            System.out.print("ZI is : ");
+            //System.out.print("ZI is : ");
             for(int j = i; j < rDiag.numRows(); j++) {
                 zi[j-i][0] = rDiag.get(j, i);
-                System.out.print(zi[j-i][0] + " ");
+                //System.out.print(zi[j-i][0] + " ");
             }
 
-            System.out.println();
+            //System.out.println();
 
             // Find ||zi||2
             SimpleMatrix Zi = new SimpleMatrix(zi);
             double magZi = Math.sqrt(Zi.dot(Zi));
-            System.out.println("Znorm is " + magZi);
+            //System.out.println("Znorm is " + magZi);
 
             // Find ei1 = {{1}, {0}, ... }
             double[][] e1 = new double[Zi.numRows()][1];
@@ -45,23 +42,23 @@ public class houseHolder {
 
             // 2. Find vi as vi = -||zi||2ei1 - zi if first element of zi is +
             //            or vi = ||zi||2ei1 - zi otherwise
-            System.out.println("First element of Z is " + zi[0][0]);
+            //System.out.println("First element of Z is " + zi[0][0]);
             if(zi[0][0] < 0) {
                 vminus = Zi.minus(E1.scale(magZi));
-                System.out.println("It's negative!");
+                //System.out.println("It's negative!");
             } else {
                 vminus = Zi.negative().minus(E1.scale(magZi));
-                System.out.println("It's positive!");
+                //System.out.println("It's positive!");
             }
 
-            System.out.println("V is " + vminus);
+            //System.out.println("V is " + vminus);
 
             // 3. Find Householder matrix Pi as follows: Pi = I - 2vivi^t/vi^tvi
             SimpleMatrix vivit = vminus.mult(vminus.transpose());
             double mag2 = vminus.dot(vminus);
             SimpleMatrix twoVi = vivit.scale(2.0/mag2);
             SimpleMatrix Pi = SimpleMatrix.identity(rDiag.numRows() - i).minus(twoVi);
-            System.out.println("P array is " + Pi);
+            //System.out.println("P array is " + Pi);
 
             // 4. Let Qi be a n * n matrix
             int n = rDiag.numRows();
@@ -73,21 +70,55 @@ public class houseHolder {
 
 
             // 5. Update R as R <-- QiR
-            System.out.println("Q array is " + QiPi);
+            //System.out.println("Q array is " + QiPi);
             rDiag = QiPi.mult(rDiag);
-            System.out.println("R array is " + rDiag);
+            //System.out.println("R array is " + rDiag);
 
             // Find Q accumlated
             //SimpleMatrix QiPrevious = new SimpleMatrix(QiPi.numRows(), QiPi.numRows());
-            System.out.println("Q Prev is " + QiPrevious);
+            //System.out.println("Q Prev is " + QiPrevious);
             Qacc = (QiPi.mult(QiPrevious));
-            System.out.println("Q accumlated is " + Qacc);
+            //System.out.println("Q accumlated is " + Qacc);
 
             QiPrevious = Qacc.copy();
         }
 
-        System.out.println("Final R is" + rDiag);
+        //System.out.println("Final R is" + rDiag);
         Qacc = Qacc.transpose();
-        System.out.println("Final Q is " + Qacc);
+        //System.out.println("Final Q is " + Qacc);
+    }
+
+    // BackSolving
+    // Input: Matrix Yn*h and a upper triangular matrix Rn*h
+    // Output: Matrix Beta*h such that Y = R*Beta holds
+    public SimpleMatrix back_solve(SimpleMatrix Y, SimpleMatrix R) {
+        //int n = R.numRows() - 1;
+        int sum;
+
+        System.out.println(Y);
+        System.out.println(R);
+
+        double [][] beta = new double[Y.numRows()][Y.numCols()];
+        int yCols = Y.numCols();
+        int yRows = R.numCols() - 1;
+
+        // There are h columns
+        for(int j = 0; j < yCols; j++) {
+            // Compute the Betan of the current column
+            beta[yRows][j] = (Y.get(yRows, j) / R.get(yRows, yRows));
+
+            // Process elements of that column
+            for(int i = yRows - 1; i >= 0; i--) {
+                sum = 0;
+                // Solve for Betai on the current column
+                for(int k = i + 1; k <= yRows; k++) {
+                    sum += R.get(i, k) * beta[k][j];
+                }
+                beta[i][j] = (Y.get(i, j) - sum)/(R.get(i, i));
+            }
+        }
+        SimpleMatrix Beta = new SimpleMatrix(beta);
+        System.out.println(Beta);
+        return Beta;
     }
 }
