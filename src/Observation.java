@@ -80,7 +80,7 @@ public class Observation {
 
 
     /**
-     * Function:	storeData()
+     * Function:	csvToArray()
      * Description:	Reads in the error rates files. Stores all the data from
      * 				csv file into a 2D array. Then swaps the 2D array's rows and
      * 				columns in order to perform z-scaling on each features (by
@@ -90,7 +90,7 @@ public class Observation {
      * Parameters:	csv 	-- file to gather data from
      * Returns:		2D array of updated z-scaled values
      */
-    public double[][] csvToArraay(String csv) throws IOException {
+    public double[][] csvToArray(String csv) throws IOException {
         double[][] obserVectors = null;
         double[] obArray;
 
@@ -108,12 +108,12 @@ public class Observation {
         String csvRow = null;
         int j = 0;
 
-        obserVectors = new double[count][30];
+        obserVectors = new double[count][31];
 
         // Put all the data of csv file into a 2D array
         while((csvRow = reader.readLine()) != null) {
             int i = 0;
-            obArray = new double[30];
+            obArray = new double[31];
             String[] observation = csvRow.split(",");
             for(String feature : observation) {
                 obArray[i++] = Double.parseDouble(feature);

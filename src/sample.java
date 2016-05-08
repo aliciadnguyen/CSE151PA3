@@ -4,6 +4,7 @@ import java.util.*;
 public class sample {
     double [][] test;
     double [][] train;
+    double [][] ySet;
 
     public sample(double[][] test, double[][] train) {
         this.test = test;
@@ -34,6 +35,17 @@ public class sample {
         return dataSize;
     }
 
+    public void getYData(double[][] totalSample) {
+        int numRows = totalSample.length;
+        int numCols = totalSample[0].length - 1;
+
+        ySet = new double[numRows][1];
+
+        for(int i = 0; i < numRows; i++) {
+            ySet[i][0] = totalSample[i][numCols];
+        }
+    }
+
 
     /**
      * Function: 	findSample()
@@ -49,13 +61,21 @@ public class sample {
      * 		tested)
      * Returns:	the test and training sets of the dataset files
      */
-    public sample findSample(Random rnd, double[][] totalSample, double percent) {
+    public sample findSample(Random rnd, double[][] totalSample, double percent, boolean x) {
 
         // Set the sample size to 10%
         double size = totalSample.length;
         double sampleSize = size * percent;
 
-        int cols = totalSample[0].length;
+        int cols;
+
+        if(x == true)
+            cols = (totalSample[0].length) - 1;
+        else
+            cols = totalSample[0].length;
+
+        //System.out.print("Sample size is " + sampleSize);
+        //System.out.println("Row is " + size);
 
         test = new double[(int)sampleSize][cols];
         train = new double[(int)(size - sampleSize)][cols];
@@ -68,16 +88,18 @@ public class sample {
         int testI = 0;
 
         for(int i = 0; i < size - 1; i++) {
-            thres = (sampleSize - count)/(size - i);
+            thres = ((int)sampleSize - count)/(size - i);
             if(rnd.nextDouble() < thres){
                 count++;
-                for(int j = 0; j < totalSample[i].length; j++) {
+                for(int j = 0; j < cols; j++) {
                     test[testI][j] = totalSample[i][j];
+                    //System.out.println(testI);
+                    //System.out.println(j);
                 }
                 testI++;
             }
             else {
-                for(int j = 0; j < totalSample[i].length; j++) {
+                for(int j = 0; j < cols; j++) {
                     train[trainI][j] = totalSample[i][j];
                 }
                 trainI++;

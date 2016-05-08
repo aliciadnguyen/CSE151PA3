@@ -8,14 +8,37 @@ public class mainApplication {
 
     public static void main(String[] args) throws IOException {
         // Used to find random 10% of data file
-        double percent = 0.10;
+        double percent = 0.90;
         Random rnd = new Random();
 
         // Seed RNG
         rnd.setSeed(0);
 
-        LinearRegression LR = new LinearRegression();
+        // Load csv data into array
+        Observation obs = new Observation();
+        double[][] obsArray = obs.csvToArray(csvFiles[0]);
+        //obs.printArr(obsArray);
 
+        double[][] X_train = null;
+        double[][] X_test = null;
+        double[][] Y_train = null;
+        double[][] Y_test = null;
+
+        sample sampleX = new sample(X_train, X_test);
+        sample sampleY = new sample(Y_train, Y_test);
+        sampleY.getYData(obsArray);
+        double [][] yData = sampleY.ySet;
+
+        sampleX.findSample(rnd, obsArray, percent, true);
+        sampleY.findSample(rnd, yData, percent, false);
+
+        LinearRegression LR = new LinearRegression();
+        SimpleMatrix x_train_matrix = new SimpleMatrix(sampleX.train);
+        SimpleMatrix y_train_matrix = new SimpleMatrix(sampleY.train);
+        LR.qr_decompose(x_train_matrix);
+        LR.back_solve(y_train_matrix, LR.rDiag);
+        System.out.println(LR.RMSE(sampleX.test, sampleY.test, LR.Beta));
+/*
         double[][] ex = { {1, -1, -1},
                           {1, 2, 3},
                           {2, 1, 1},
@@ -32,10 +55,11 @@ public class mainApplication {
 
         SimpleMatrix UR = new SimpleMatrix(upperR);
         SimpleMatrix YY = new SimpleMatrix(Y);
-        System.out.println("Qacc is " + LR.Qacc);
+        //System.out.println("Qacc is " + LR.Qacc);
         LR.back_solve(YY, UR);
-        //LR.back_solve(LR.Qacc.transpose().mult(YY), LR.rDiag);
+        //System.out.println(LR.RMSE(upperR, Y, LR.Beta));
 
+        //LR.back_solve(LR.Qacc.transpose().mult(YY), LR.rDiag); */
     }
 }	
 	

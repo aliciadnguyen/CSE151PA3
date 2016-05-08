@@ -2,12 +2,14 @@
  * Created by Alicia on 5/4/2016.
  */
 
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.ejml.simple.SimpleMatrix;
 
 public class LinearRegression {
 
     SimpleMatrix rDiag;
     SimpleMatrix Qacc;
+    SimpleMatrix Beta;
 
     public void qr_decompose(SimpleMatrix X_train) {
         //R is used to store X, Q1X, Q2Q1X, ...
@@ -22,13 +24,13 @@ public class LinearRegression {
             // 1. Obtain target column (zi) -- first column of submatrix
             // zi = [ Ri,i  Ri,i+1, ... , Ri, n ]
             double[][] zi = new double[rDiag.numRows()-i][1];
-            //System.out.print("ZI is : ");
+            System.out.print("ZI is : ");
             for(int j = i; j < rDiag.numRows(); j++) {
                 zi[j-i][0] = rDiag.get(j, i);
-                //System.out.print(zi[j-i][0] + " ");
+                System.out.print(zi[j-i][0] + " ");
             }
 
-            //System.out.println();
+            System.out.println();
 
             // Find ||zi||2
             SimpleMatrix Zi = new SimpleMatrix(zi);
@@ -42,23 +44,21 @@ public class LinearRegression {
 
             // 2. Find vi as vi = -||zi||2ei1 - zi if first element of zi is +
             //            or vi = ||zi||2ei1 - zi otherwise
-            //System.out.println("First element of Z is " + zi[0][0]);
+            System.out.println("First element of Z is " + zi[0][0]);
             if(zi[0][0] < 0) {
                 vminus = Zi.minus(E1.scale(magZi));
-                //System.out.println("It's negative!");
             } else {
                 vminus = Zi.negative().minus(E1.scale(magZi));
-                //System.out.println("It's positive!");
             }
 
-            //System.out.println("V is " + vminus);
+            System.out.println("V is " + vminus);
 
             // 3. Find Householder matrix Pi as follows: Pi = I - 2vivi^t/vi^tvi
             SimpleMatrix vivit = vminus.mult(vminus.transpose());
             double mag2 = vminus.dot(vminus);
             SimpleMatrix twoVi = vivit.scale(2.0/mag2);
             SimpleMatrix Pi = SimpleMatrix.identity(rDiag.numRows() - i).minus(twoVi);
-            //System.out.println("P array is " + Pi);
+            System.out.println("P array is " + Pi);
 
             // 4. Let Qi be a n * n matrix
             int n = rDiag.numRows();
@@ -70,37 +70,30 @@ public class LinearRegression {
 
 
             // 5. Update R as R <-- QiR
-            //System.out.println("Q array is " + QiPi);
+            System.out.println("Q array is " + QiPi);
             rDiag = QiPi.mult(rDiag);
-            //System.out.println("R array is " + rDiag);
+            System.out.println("R array is " + rDiag);
 
             // Find Q accumlated
-            //SimpleMatrix QiPrevious = new SimpleMatrix(QiPi.numRows(), QiPi.numRows());
-            //System.out.println("Q Prev is " + QiPrevious);
             Qacc = (QiPi.mult(QiPrevious));
-            //System.out.println("Q accumlated is " + Qacc);
+            System.out.println("Q accumlated is " + Qacc);
 
             QiPrevious = Qacc.copy();
         }
 
-        //System.out.println("Final R is" + rDiag);
+        System.out.println("Final R is" + rDiag);
         Qacc = Qacc.transpose();
-        //System.out.println("Final Q is " + Qacc);
+        System.out.println("Final Q is " + Qacc);
     }
 
     // BackSolving
     // Input: Matrix Yn*h and a upper triangular matrix Rn*h
     // Output: Matrix Beta*h such that Y = R*Beta holds
-    public SimpleMatrix back_solve(SimpleMatrix Y, SimpleMatrix R) {
-        //int n = R.numRows() - 1;
-        int sum;
-
-        System.out.println(Y);
-        System.out.println(R);
-
+    public void back_solve(SimpleMatrix Y, SimpleMatrix R) {
         double [][] beta = new double[Y.numRows()][Y.numCols()];
         int yCols = Y.numCols();
         int yRows = R.numCols() - 1;
+        int sum;
 
         // There are h columns
         for(int j = 0; j < yCols; j++) {
@@ -117,8 +110,33 @@ public class LinearRegression {
                 beta[i][j] = (Y.get(i, j) - sum)/(R.get(i, i));
             }
         }
-        SimpleMatrix Beta = new SimpleMatrix(beta);
-        System.out.println(Beta);
-        return Beta;
+        Beta = new SimpleMatrix(beta);
+    }
+
+    public double RMSE ( double[][] xtest, double[][] ytest, SimpleMatrix beta ) {
+        SimpleMatrix x = new SimpleMatrix(xtest);
+        SimpleMatrix y = new SimpleMatrix(ytest);
+        beta = beta.extractMatrix(0, x.numCols(), 0, beta.numCols());
+
+        //System.out.println("X is " + x);
+        //System.out.println("Beta is " + beta);
+        //System.out.println("X must beta " + x.mult(beta));
+        //System.out.println("Y is " + y);
+
+
+        SimpleMatrix xb_y = x.mult(beta).minus(y);
+        System.out.println("xbY is " + xb_y);
+        SimpleMatrix square = xb_y.mult(xb_y.transpose());
+
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        for(int row = 0; row < square.numRows(); row++) {
+            for(int col = 0; col < square.numCols(); col++) {
+                stats.addValue(square.get(row, col));
+            }
+        }
+
+        double mean = stats.getMean();
+
+        return Math.sqrt(mean);
     }
 }
