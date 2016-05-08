@@ -8,7 +8,7 @@ public class mainApplication {
 
     public static void main(String[] args) throws IOException {
         // Used to find random 80% of data file
-        double percent = 0.80;
+        double percent = 0.75;
         Random rnd = new Random();
 
         // Seed RNG
