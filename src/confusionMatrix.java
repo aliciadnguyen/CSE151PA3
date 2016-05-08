@@ -91,11 +91,7 @@ class confusionMatrix {
         double[][] obserVectors = null;
         double[] obArray;
 
-        // Sample - 10% Test data and 90% Training Data
-        double [][] testData = null;
-        double [][] trainData = null;
-
-        sample s = new sample(testData, trainData);
+        sample s = new sample();
         int count = s.getDataSize(csv);
 
         // Read in CSV file

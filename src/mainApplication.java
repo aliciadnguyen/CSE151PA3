@@ -7,8 +7,8 @@ public class mainApplication {
     public static String[] csvFiles = {"regression-0.05.csv", "regression-A.csv", "regression-B.csv", "regression-C.csv"};
 
     public static void main(String[] args) throws IOException {
-        // Used to find random 10% of data file
-        double percent = 0.90;
+        // Used to find random 80% of data file
+        double percent = 0.85;
         Random rnd = new Random();
 
         // Seed RNG
@@ -16,29 +16,29 @@ public class mainApplication {
 
         // Load csv data into array
         Observation obs = new Observation();
-        double[][] obsArray = obs.csvToArray(csvFiles[0]);
-        //obs.printArr(obsArray);
+        double[][] obsArray = obs.csvToArray(csvFiles[1]);
 
-        double[][] X_train = null;
-        double[][] X_test = null;
-        double[][] Y_train = null;
-        double[][] Y_test = null;
+        // Find sample data of X features and Y label
+        sample s = new sample();
+        s.findSample(rnd, obsArray, percent);
 
-        sample sampleX = new sample(X_train, X_test);
-        sample sampleY = new sample(Y_train, Y_test);
-        sampleY.getYData(obsArray);
-        double [][] yData = sampleY.ySet;
-
-        sampleX.findSample(rnd, obsArray, percent, true);
-        sampleY.findSample(rnd, yData, percent, false);
-
+        // Perform qr_decomposition and back-solving to find RMSE
         LinearRegression LR = new LinearRegression();
-        SimpleMatrix x_train_matrix = new SimpleMatrix(sampleX.train);
-        SimpleMatrix y_train_matrix = new SimpleMatrix(sampleY.train);
+        SimpleMatrix x_train_matrix = new SimpleMatrix(s.xtrain);
+        SimpleMatrix y_train_matrix = new SimpleMatrix(s.ytrain);
+
         LR.qr_decompose(x_train_matrix);
-        LR.back_solve(y_train_matrix, LR.rDiag);
-        System.out.println(LR.RMSE(sampleX.test, sampleY.test, LR.Beta));
-/*
+
+        SimpleMatrix QTY = LR.Qacc.transpose().mult(y_train_matrix);
+        System.out.println("r cols " + LR.rDiag.numCols() + " r ROWS; " + LR.rDiag.numRows());
+        //System.out.println("QTY cols: " + LR.Qacc.numCols() + " QTY ROWS; " + LR.Qacc.numRows());
+
+        LR.back_solve(QTY, LR.rDiag);
+
+        // Print out RMSE of each csv file
+        System.out.println("CSV FILE: " + csvFiles[0] + ", RMSE: " + LR.RMSE(s.xtest, s.ytest, LR.Beta));
+
+        /* -- example from PA3 guidelines checking if qr() and backsolve() works
         double[][] ex = { {1, -1, -1},
                           {1, 2, 3},
                           {2, 1, 1},
@@ -47,7 +47,6 @@ public class mainApplication {
 
         SimpleMatrix X = new SimpleMatrix(ex);
         LR.qr_decompose(X);
-
         SimpleMatrix y = new SimpleMatrix(X);
 
         double[][] upperR = { {1, 2, 1}, {0, 1, 2}, {0, 0, 1} };
@@ -55,11 +54,8 @@ public class mainApplication {
 
         SimpleMatrix UR = new SimpleMatrix(upperR);
         SimpleMatrix YY = new SimpleMatrix(Y);
-        //System.out.println("Qacc is " + LR.Qacc);
         LR.back_solve(YY, UR);
-        //System.out.println(LR.RMSE(upperR, Y, LR.Beta));
-
-        //LR.back_solve(LR.Qacc.transpose().mult(YY), LR.rDiag); */
+        */
     }
 }	
 	

@@ -2,14 +2,10 @@ import java.io.*;
 import java.util.*;
 
 public class sample {
-    double [][] test;
-    double [][] train;
-    double [][] ySet;
-
-    public sample(double[][] test, double[][] train) {
-        this.test = test;
-        this.train = train;
-    }
+    double [][] xtest;
+    double [][] xtrain;
+    double [][] ytest;
+    double [][] ytrain;
 
     /**
      * Function: 	getDataSize()
@@ -35,18 +31,6 @@ public class sample {
         return dataSize;
     }
 
-    public void getYData(double[][] totalSample) {
-        int numRows = totalSample.length;
-        int numCols = totalSample[0].length - 1;
-
-        ySet = new double[numRows][1];
-
-        for(int i = 0; i < numRows; i++) {
-            ySet[i][0] = totalSample[i][numCols];
-        }
-    }
-
-
     /**
      * Function: 	findSample()
      * Parameters: 			rnd	-- random number generated from RNG
@@ -61,24 +45,18 @@ public class sample {
      * 		tested)
      * Returns:	the test and training sets of the dataset files
      */
-    public sample findSample(Random rnd, double[][] totalSample, double percent, boolean x) {
+    public void findSample(Random rnd, double[][] totalSample, double percent) {
 
         // Set the sample size to 10%
         double size = totalSample.length;
         double sampleSize = size * percent;
 
-        int cols;
+        int cols = totalSample[0].length;
 
-        if(x == true)
-            cols = (totalSample[0].length) - 1;
-        else
-            cols = totalSample[0].length;
-
-        //System.out.print("Sample size is " + sampleSize);
-        //System.out.println("Row is " + size);
-
-        test = new double[(int)sampleSize][cols];
-        train = new double[(int)(size - sampleSize)][cols];
+        xtest = new double[(int)sampleSize][cols-1];
+        xtrain = new double[(int)(size - sampleSize)][cols-1];
+        ytest = new double[(int)sampleSize][1];
+        ytrain = new double[(int)(size - sampleSize)][1];
 
         // Number of selected items
         double count = 0;
@@ -91,22 +69,19 @@ public class sample {
             thres = ((int)sampleSize - count)/(size - i);
             if(rnd.nextDouble() < thres){
                 count++;
-                for(int j = 0; j < cols; j++) {
-                    test[testI][j] = totalSample[i][j];
-                    //System.out.println(testI);
-                    //System.out.println(j);
+                for(int j = 0; j < cols-1; j++) {
+                    xtest[testI][j] = totalSample[i][j];
                 }
+                ytest[testI][0] = totalSample[i][cols-1];
                 testI++;
             }
             else {
-                for(int j = 0; j < cols; j++) {
-                    train[trainI][j] = totalSample[i][j];
+                for(int j = 0; j < cols-1; j++) {
+                    xtrain[trainI][j] = totalSample[i][j];
                 }
+                ytrain[trainI][0] = totalSample[i][cols-1];
                 trainI++;
             }
         }
-
-        sample s = new sample(test, train);
-        return s;
     }
 }

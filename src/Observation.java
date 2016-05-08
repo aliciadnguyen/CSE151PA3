@@ -1,5 +1,4 @@
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +8,6 @@ import java.io.InputStreamReader;
  * Created by Alicia on 5/4/2016.
  */
 public class Observation {
-    int rows = 0;
-    int cols = 0;
 
     /**
      * Function:	abaloneData()
@@ -98,7 +95,7 @@ public class Observation {
         double [][] testData = null;
         double [][] trainData = null;
 
-        sample s = new sample(testData, trainData);
+        sample s = new sample();
         int count = s.getDataSize(csv);
 
         // Read in CSV file
@@ -122,20 +119,8 @@ public class Observation {
             j++;
         }
 
-        // Swapping columns and rows
-        double swap[][] = swapArr(obserVectors);
-        double scaleObs[][] = new double [obserVectors[0].length][obserVectors.length];
-
-        // Perform z-scaling on swap array
-        int sR = 0;
-        for(; sR < swap.length-1; sR++){
-            scaleObs[sR] = zScale(swap[sR]);
-        }
-        scaleObs[sR] = swap[sR];
-        double[][] scaleArr = swapArr(scaleObs);
-
         reader.close();
-        return scaleArr;
+        return obserVectors;
     }
 
 
