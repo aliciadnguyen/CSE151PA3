@@ -45,7 +45,7 @@ public class sample {
      * 		tested)
      * Returns:	the test and training sets of the dataset files
      */
-    public void findSample(Random rnd, double[][] totalSample, double percent) {
+    public void findSample(Random rnd, double[][] totalSample, double percent, boolean aba) {
 
         // Set the sample size to 10%
         double size = totalSample.length;
@@ -53,10 +53,18 @@ public class sample {
 
         int cols = totalSample[0].length;
 
+        //System.out.println((int)(size - sampleSize));
+
+        if(aba == true) {
+            xtrain = new double[(int)(size - sampleSize) + 1][cols-1];
+            ytrain = new double[(int)(size - sampleSize) + 1][1];
+        } else {
+            xtrain = new double[(int)(size - sampleSize)][cols-1];
+            ytrain = new double[(int)(size - sampleSize)][1];
+        }
+
         xtest = new double[(int)sampleSize][cols-1];
-        xtrain = new double[(int)(size - sampleSize)][cols-1];
         ytest = new double[(int)sampleSize][1];
-        ytrain = new double[(int)(size - sampleSize)][1];
 
         // Number of selected items
         double count = 0;
@@ -65,7 +73,7 @@ public class sample {
         int trainI = 0;
         int testI = 0;
 
-        for(int i = 0; i < size - 1; i++) {
+        for(int i = 0; i < size; i++) {
             thres = ((int)sampleSize - count)/(size - i);
             if(rnd.nextDouble() < thres){
                 count++;
@@ -76,8 +84,10 @@ public class sample {
                 testI++;
             }
             else {
-                for(int j = 0; j < cols-1; j++) {
+                for(int j = 0; j < cols - 1; j++) {
                     xtrain[trainI][j] = totalSample[i][j];
+                    //System.out.println(i + " "+  j);
+                    //System.out.println("TrainI: " + trainI);
                 }
                 ytrain[trainI][0] = totalSample[i][cols-1];
                 trainI++;

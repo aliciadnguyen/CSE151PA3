@@ -19,14 +19,14 @@ public class LinearRegression {
         SimpleMatrix QiPrevious = SimpleMatrix.identity(rDiag.numRows());
 
         //For loop for i = 1 ~ d iterations, calculated Qi
-        for(int i = 0; i < X_train.numCols(); i++) {
+        for (int i = 0; i < X_train.numCols(); i++) {
 
             // 1. Obtain target column (zi) -- first column of submatrix
             // zi = [ Ri,i  Ri,i+1, ... , Ri, n ]
-            double[][] zi = new double[rDiag.numRows()-i][1];
+            double[][] zi = new double[rDiag.numRows() - i][1];
             //System.out.print("ZI is : ");
-            for(int j = i; j < rDiag.numRows(); j++) {
-                zi[j-i][0] = rDiag.get(j, i);
+            for (int j = i; j < rDiag.numRows(); j++) {
+                zi[j - i][0] = rDiag.get(j, i);
                 //System.out.print(zi[j-i][0] + " ");
             }
 
@@ -44,8 +44,7 @@ public class LinearRegression {
 
             // 2. Find vi as vi = -||zi||2ei1 - zi if first element of zi is +
             //            or vi = ||zi||2ei1 - zi otherwise
-            //System.out.println("First element of Z is " + zi[0][0]);
-            if(zi[0][0] < 0) {
+            if (zi[0][0] < 0) {
                 vminus = Zi.minus(E1.scale(magZi));
             } else {
                 vminus = Zi.negative().minus(E1.scale(magZi));
@@ -56,16 +55,14 @@ public class LinearRegression {
             // 3. Find Householder matrix Pi as follows: Pi = I - 2vivi^t/vi^tvi
             SimpleMatrix vivit = vminus.mult(vminus.transpose());
             double mag2 = vminus.dot(vminus);
-            SimpleMatrix twoVi = vivit.scale(2.0/mag2);
+            SimpleMatrix twoVi = vivit.scale(2.0 / mag2);
             SimpleMatrix Pi = SimpleMatrix.identity(rDiag.numRows() - i).minus(twoVi);
             //System.out.println("P array is " + Pi);
 
             // 4. Let Qi be a n * n matrix
             int n = rDiag.numRows();
             SimpleMatrix Qi = new SimpleMatrix(n, n);
-
             SimpleMatrix QiIdentity = SimpleMatrix.identity(Qi.numRows());
-
             SimpleMatrix QiPi = QiIdentity.combine(n - Pi.numRows(), n - Pi.numRows(), Pi);
 
 
@@ -86,32 +83,40 @@ public class LinearRegression {
         //System.out.println("Final Q is " + Qacc);
     }
 
-    // BackSolving
-    // Input: Matrix Yn*h and a upper triangular matrix Rn*h
+
+
+    // Input: Matrix Yn*1h and a upper triangular matrix Rn*h
     // Output: Matrix Beta*h such that Y = R*Beta holds
     public void back_solve(SimpleMatrix Y, SimpleMatrix R) {
-        double [][] beta = new double[R.numCols()][1];
+        double[][] beta = new double[R.numCols()][1];
         int yCols = Y.numCols();
         int yRows = R.numCols() - 1;
         int sum;
 
         // There are h columns
-        for(int j = 0; j < yCols; j++) {
+        for (int j = 0; j < yCols; j++) {
             // Compute the Betan of the current column
             beta[yRows][j] = (Y.get(yRows, j) / R.get(yRows, yRows));
 
             // Process elements of that column
-            for(int i = yRows - 1; i >= 0; i--) {
+            for (int i = yRows - 1; i >= 0; i--) {
                 sum = 0;
                 // Solve for Betai on the current column
-                for(int k = i + 1; k <= yRows; k++) {
+                for (int k = i + 1; k <= yRows; k++) {
                     sum += R.get(i, k) * beta[k][j];
                 }
-                beta[i][j] = (Y.get(i, j) - sum)/(R.get(i, i));
+                beta[i][j] = (Y.get(i, j) - sum) / (R.get(i, i));
             }
         }
-        Beta = new SimpleMatrix(beta);}
+        Beta = new SimpleMatrix(beta);
+    }
 
+
+    // Y : n * 1 label matrix
+    // X : n * d feature data matrix
+    // Beta : d * 1 linear regression coefficients
+    // n = numbers of training samles
+    // d = number of columns (types of features)
     public double RMSE ( double[][] xtest, double[][] ytest, SimpleMatrix beta ) {
         SimpleMatrix x = new SimpleMatrix(xtest);
         SimpleMatrix y = new SimpleMatrix(ytest);
@@ -128,7 +133,6 @@ public class LinearRegression {
         }
 
         double mean = stats / xb_y.getNumElements();
-
         return Math.sqrt(mean);
     }
 }

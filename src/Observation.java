@@ -22,7 +22,7 @@ public class Observation {
      * 				count 	-- number of observations in datafile
      * Returns:		2D array of updated z-scaled values
      */
-    public double[][] abaloneData(String csv, int count) throws IOException {
+    public double[][] abaloneData(String csv) throws IOException {
         double[][] abaObser = null;
         double[] obArray;
 
@@ -32,6 +32,9 @@ public class Observation {
 
         String csvRow = null;
         int j = 0;
+
+        sample s = new sample();
+        int count = s.getDataSize(csv);
 
         abaObser = new double[count][11];
 
