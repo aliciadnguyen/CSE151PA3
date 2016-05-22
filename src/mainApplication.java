@@ -6,6 +6,7 @@ import java.util.Random;
 
 public class mainApplication {
     public static String[] csvFiles = {"abalone.csv"};
+    public static int[] k_vals = {1, 2, 4, 8, 16};
 
     public static void main(String[] args) throws IOException {
         // Used to find random 80% of data file
@@ -26,35 +27,76 @@ public class mainApplication {
         // Gather the training and test dataset
         s.findSample(rnd, obsArray, percent, true);
 
-        // Calculate the cluster's on the training set
-        KMeans X_km = new KMeans(s.xtrain, k);
-        KMeans Y_km = new KMeans(s.ytrain, k);
+        for(int j = 0; j < k_vals.length; j++) {
+            // Calculate the cluster's on the training set
+            KMeans XTrain_km = new KMeans(s.xtrain, k_vals[j]);
+            KMeans YTrain_km = new KMeans(s.ytrain, k_vals[j]);
+            KMeans XTest_km = new KMeans(s.xtest, k_vals[j]);
+            KMeans YTest_km = new KMeans(s.ytest, k_vals[j]);
 
-        X_km.kmeans(s.xtrain, k);
-        Y_km.kmeans(s.ytrain, k);
+            XTrain_km.kmeans(s.xtrain, k_vals[j]);
+            YTrain_km.kmeans(s.ytrain, k_vals[j]);
+            XTest_km.kmeans(s.xtest, k_vals[j]);
+            YTest_km.kmeans(s.ytest, k_vals[j]);
 
-        List<Cluster> clusters_X = X_km.getCluster();
-        List<Cluster> clusters_Y = Y_km.getCluster();
+            double [][] xtrain_clusters;
+            double [][] ytrain_clusters;
+            double [][] xtest_clusters = null;
+            double [][] ytest_clusters;
 
-        double [][] x_clusters = X_km.convertListTo2D(clusters_X.get(0).points);
-        double [][] y_clusters = Y_km.convertListTo2D(clusters_Y.get(0).points);
+            List<Cluster> clusters_XTrain;
+            List<Cluster> clusters_YTrain;
+            List<Cluster> clusters_XTest = null;
+            List<Cluster> clusters_YTest;
 
-        // For each cluster, calculate a QR decomposition and associate
-        // it with the cluster
-        LinearRegression LR = new LinearRegression();
-        SimpleMatrix x_train_matrix = new SimpleMatrix(x_clusters);
-        SimpleMatrix y_train_matrix = new SimpleMatrix(y_clusters);
+            double totalRMSE = 0.0;
+            System.out.println("K VALUE IS " + k_vals[j] + " : ");
 
-        // 1. QR Decomposition
-        LR.qr_decompose(x_train_matrix);
+            for(int i = 0; i < k_vals[j]; i++) {
+                clusters_XTrain = XTrain_km.getCluster();
+                clusters_YTrain = YTrain_km.getCluster();
+                clusters_XTest = XTest_km.getCluster();
+                clusters_YTest = YTest_km.getCluster();
 
-        SimpleMatrix QTY = LR.Qacc.transpose().mult(y_train_matrix);
-        //System.out.println(LR.rDiag);
-        //System.out.println(QTY);
+                xtrain_clusters = XTrain_km.convertListTo2D(clusters_XTrain.get(i).points);
+                ytrain_clusters = YTrain_km.convertListTo2D(clusters_YTrain.get(i).points);
+                xtest_clusters = XTest_km.convertListTo2D(clusters_XTest.get(i).points);
+                ytest_clusters = YTest_km.convertListTo2D(clusters_YTest.get(i).points);
 
-        // 2. Back Solve
-        LR.back_solve(QTY, LR.rDiag);
+                // For each cluster, calculate a QR decomposition and associate
+                // it with the cluster
+                LinearRegression LRTrain = new LinearRegression();
+                SimpleMatrix x_train_matrix = new SimpleMatrix(xtrain_clusters);
+                SimpleMatrix y_train_matrix = new SimpleMatrix(ytrain_clusters);
+                SimpleMatrix x_test_matrix = new SimpleMatrix(xtest_clusters);
+                SimpleMatrix y_test_matrix = new SimpleMatrix(ytest_clusters);
 
+                // 1. QR Decomposition
+                LRTrain.qr_decompose(x_train_matrix);
+
+                SimpleMatrix QTY = LRTrain.Qacc.transpose().mult(y_train_matrix);
+
+                // 2. Back Solve
+                LRTrain.back_solve(QTY, LRTrain.rDiag);
+
+                double rmse = LRTrain.RMSE(xtest_clusters, ytest_clusters, LRTrain.Beta);
+                totalRMSE += rmse;
+
+                System.out.println("RMSE for each cluster " + i + " : " + rmse);
+                System.out.print("Centroids are: ");
+                double [] centroids = clusters_XTest.get(i).getCentroid();
+                for(int cent = 0; cent < centroids.length; cent++) {
+                    System.out.print(centroids[cent] + " ");
+                }
+                System.out.println();
+                System.out.println("WCSS: " + XTest_km.wcss(xtest_clusters, clusters_XTest.get(i).getCentroid()));
+                clusters_XTest.get(i).calMeanAndStd();
+                System.out.println("MEAN: " + clusters_XTest.get(i).getMean());
+                System.out.println("STD: " + clusters_XTest.get(i).getStd());
+            }
+
+            System.out.println("Total RMSE: " + totalRMSE + "\n\n");
+        }
     }
 }	
 	

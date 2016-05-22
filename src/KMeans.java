@@ -36,12 +36,22 @@ public class KMeans {
             change = false;
             // Find new centroids of all of the clusters
             clearArray(centroids);
-            //calculateCentroids();
+            calculateCentroids();
             // Go back thru the pts and assign them to min distance to centroid clusters
-            //assignClusters(k);
+            assignClusters(k);
         }
     }
 
+    // Calculates the within cluster sum of squares
+    public double wcss(double[][] data, double[] closestCentroid) {
+        double value = 0;
+        for(int i = 0; i < data.length; i++) {
+            for(int j = 0; j < data[i].length; j++) {
+                value += Math.abs(data[i][j] - closestCentroid[j]);
+            }
+        }
+        return value;
+    }
 
     // Pick random observations from the dataset and make them as centroids
     private void getCentroids(double[][] obs, int k) {

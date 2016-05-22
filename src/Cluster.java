@@ -1,6 +1,8 @@
 /**
  * Created by Alicia on 5/21/2016.
  */
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,8 @@ public class Cluster {
     public List<double[]> points;
     public double[] centroid;
     public int id;
+    public double mean;
+    public double std;
 
     //Creates a new Cluster
     public Cluster() {
@@ -17,28 +21,39 @@ public class Cluster {
         this.points = new ArrayList<double[]>();
     }
 
+    public void calMeanAndStd() {
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        for(int i = 0; i < points.size(); i++) {
+            for(int j = 0; j < points.get(i).length; j++) {
+                stats.addValue(points.get(i)[j]);
+            }
+        }
+        this.mean = stats.getMean();
+        this.std = stats.getStandardDeviation();
+    }
+
+    public double getMean() {
+        return this.mean;
+    }
+
+    public double getStd() {
+        return this.std;
+    }
+
+    public double[][] convertListTo2D(List<double[]> l) {
+        double [][] arr = new double[l.size()][l.get(0).length];
+        for(int i = 0; i < l.size(); i++) {
+            for(int j = 0; j < l.get(i).length; j++) {
+                arr[i][j] = l.get(i)[j];
+            }
+        }
+        return arr;
+    }
+
     public List<double[]> getPoints() {
         return points;
     }
 
-    /*public void addPoint(double [] point) {
-        points = new double[1][point.length];
-        int rows = points.length;
-        int cols = points[0].length;
-        double[][] tmpPoints = new double[rows+1][cols];
-        for(int i = 0; i < rows; i++) {
-            for(int j = 0; j < cols; j++) {
-                tmpPoints[i][j] = points[i][j];
-                System.out.println(points[i][j] + " ");
-            }
-            System.out.println();
-        }
-
-
-        tmpPoints[rows] = point;
-        points = tmpPoints;
-    }
-*/
     public void setPoints(List<double[]>points) {
         this.points = points;
     }
