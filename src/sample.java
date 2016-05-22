@@ -1,3 +1,10 @@
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
 import java.io.*;
 import java.util.*;
 
@@ -92,6 +99,40 @@ public class sample {
                 ytrain[trainI][0] = totalSample[i][cols-1];
                 trainI++;
             }
+        }
+    }
+
+    public void createChart(List<Double> list, int[] trials) {
+        XYSeriesCollection dataSet = new XYSeriesCollection();
+        XYSeries series = new XYSeries("Plotted Points");
+
+        for(int m = 0; m < list.size(); m++) {
+            series.add(trials[m], list.get(m));
+            //System.out.println("Trials: " + trials[m]);
+            //System.out.println("Means: " + means[m]);
+        }
+
+        dataSet.addSeries(series);
+
+        String chartTitle = "WCSS vs K Graph";
+        String xAxisLabel = "K";
+        String yAxisLabel = "WCSS";
+
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                chartTitle, xAxisLabel,
+                yAxisLabel, dataSet,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false);
+
+        try {
+            ChartUtilities.saveChartAsJPEG(
+                    new File("C:\\Users\\Alicia\\Desktop\\chart.jpg"),
+                    chart, 500, 300);
+            System.out.println("Charted created!");
+        } catch (IOException e) {
+            System.err.println("Problem occurred creating chart: " + e);
         }
     }
 }

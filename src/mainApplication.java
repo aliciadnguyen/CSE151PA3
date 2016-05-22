@@ -1,6 +1,6 @@
 import org.ejml.simple.SimpleMatrix;
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -13,6 +13,7 @@ public class mainApplication {
         double percent = 0.90;
         Random rnd = new Random();
         int k = 3;
+        List<Double> wcss = new ArrayList<Double>();
 
         // Seed RNG
         rnd.setSeed(0);
@@ -82,7 +83,7 @@ public class mainApplication {
                 double rmse = LRTrain.RMSE(xtest_clusters, ytest_clusters, LRTrain.Beta);
                 totalRMSE += rmse;
 
-                System.out.println("RMSE for each cluster " + i + " : " + rmse);
+                System.out.println("SSRMSE for each cluster " + i + " : " + rmse);
                 System.out.print("Centroids are: ");
                 double [] centroids = clusters_XTest.get(i).getCentroid();
                 for(int cent = 0; cent < centroids.length; cent++) {
@@ -96,7 +97,13 @@ public class mainApplication {
             }
 
             System.out.println("Total RMSE: " + totalRMSE + "\n\n");
+            wcss.add(XTest_km.wcss(xtest_clusters, clusters_XTest.get(0).getCentroid()));
         }
+
+        System.out.println("BEFORE");
+        // Plot WCSS vs K
+        s.createChart(wcss, k_vals);
+        System.out.println("AFTER");
     }
 }	
 	
