@@ -1,75 +1,60 @@
 import org.ejml.simple.SimpleMatrix;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Random;
 
 public class mainApplication {
-    public static String[] csvFiles = {"regression-0.05.csv", "regression-A.csv", "regression-B.csv", "regression-C.csv", "abalone.csv"};
+    public static String[] csvFiles = {"abalone.csv"};
 
     public static void main(String[] args) throws IOException {
         // Used to find random 80% of data file
-        double percent = 0.75;
+        double percent = 0.90;
         Random rnd = new Random();
+        int k = 3;
 
         // Seed RNG
         rnd.setSeed(0);
 
-        boolean abalone = false;
+        Observation obs = new Observation();
+        double[][] obsArray;
 
-        // Load csv data into array
-        for(int i = 0; i < csvFiles.length; i++) {
-            Observation obs = new Observation();
-            double[][] obsArray;
+        // Z-scale and convert csv to 2D Array
+        sample s = new sample();
+        obsArray = obs.abaloneData(csvFiles[0]);
 
-            // Find sample data of X features and Y label
-            sample s = new sample();
+        // Gather the training and test dataset
+        s.findSample(rnd, obsArray, percent, true);
 
-            // If abalone.csv, need to proxy variables with different function
-            if(csvFiles[i].compareTo("abalone.csv") != 0)
-                obsArray = obs.csvToArray(csvFiles[i]);
-            else {
-                obsArray = obs.abaloneData(csvFiles[i]);
-                abalone = true;
-            }
+        // Calculate the cluster's on the training set
+        KMeans X_km = new KMeans(s.xtrain, k);
+        KMeans Y_km = new KMeans(s.ytrain, k);
 
-            s.findSample(rnd, obsArray, percent, abalone);
+        X_km.kmeans(s.xtrain, k);
+        Y_km.kmeans(s.ytrain, k);
 
-            // Perform qr_decomposition and back-solving to find RMSE
-            LinearRegression LR = new LinearRegression();
-            SimpleMatrix x_train_matrix = new SimpleMatrix(s.xtrain);
-            SimpleMatrix y_train_matrix = new SimpleMatrix(s.ytrain);
+        List<Cluster> clusters_X = X_km.getCluster();
+        List<Cluster> clusters_Y = Y_km.getCluster();
 
-            // 1. QR Decomposition
-            LR.qr_decompose(x_train_matrix);
+        double [][] x_clusters = X_km.convertListTo2D(clusters_X.get(0).points);
+        double [][] y_clusters = Y_km.convertListTo2D(clusters_Y.get(0).points);
 
-            SimpleMatrix QTY = LR.Qacc.transpose().mult(y_train_matrix);
+        // For each cluster, calculate a QR decomposition and associate
+        // it with the cluster
+        LinearRegression LR = new LinearRegression();
+        SimpleMatrix x_train_matrix = new SimpleMatrix(x_clusters);
+        SimpleMatrix y_train_matrix = new SimpleMatrix(y_clusters);
 
-            // 2. Back Solve
-            LR.back_solve(QTY, LR.rDiag);
+        // 1. QR Decomposition
+        LR.qr_decompose(x_train_matrix);
 
-            // Print out RMSE of each csv file
-            System.out.println("CSV FILE: " + csvFiles[i] + ", RMSE: " + LR.RMSE(s.xtest, s.ytest, LR.Beta));
-        }
+        SimpleMatrix QTY = LR.Qacc.transpose().mult(y_train_matrix);
+        //System.out.println(LR.rDiag);
+        //System.out.println(QTY);
 
+        // 2. Back Solve
+        LR.back_solve(QTY, LR.rDiag);
 
-        /* -- example from PA3 guidelines checking if qr() and backsolve() works
-        double[][] ex = { {1, -1, -1},
-                          {1, 2, 3},
-                          {2, 1, 1},
-                          {2, -2, 1},
-                          {3, 2, 1} };
-
-        SimpleMatrix X = new SimpleMatrix(ex);
-        LR.qr_decompose(X);
-        SimpleMatrix y = new SimpleMatrix(X);
-
-        double[][] upperR = { {1, 2, 1}, {0, 1, 2}, {0, 0, 1} };
-        double[][] Y = {{1}, {2}, {3}};
-
-        SimpleMatrix UR = new SimpleMatrix(upperR);
-        SimpleMatrix YY = new SimpleMatrix(Y);
-        LR.back_solve(YY, UR);
-        */
     }
 }	
 	
