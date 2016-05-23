@@ -1,3 +1,4 @@
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,12 +12,16 @@ public class KMeans {
     private double[][] centroids; // holds the random/newly calculated centroid observations
     boolean change = false;
     Cluster clusterCentroid = new Cluster();
+    public double[][] oldCentroids;
+    public double[][] newCentroids;
 
 
     public KMeans(double [][] arr, int k) {
-        this.points = new double [arr.length][arr[0].length];
+        this.points = arr;
         this.clusters = new ArrayList<Cluster>();
         this.centroids = new double [k][arr[0].length];
+        this.oldCentroids = new double [k][arr[0].length];
+        this.newCentroids = new double [k][arr[0].length];
     }
 
     public List<Cluster> getCluster() {
@@ -25,20 +30,27 @@ public class KMeans {
 
     public void kmeans (double[][] observations, int k) {
         // Choose K centroid's from dataset by finding random points
-        addObsPoints(observations);
-        getCentroids(observations, k);
+        oldCentroids = getRandomCentroids(k);
 
         // Go through the rest of data and assign each obs to the cluster
         // that has the min distance from that pt to the centroid of the cluster
         assignClusters(k);
 
-        while(!change) {
+        while(true) {
             change = false;
             // Find new centroids of all of the clusters
             clearArray(centroids);
-            calculateCentroids();
+            clusters.clear();
             // Go back thru the pts and assign them to min distance to centroid clusters
             assignClusters(k);
+            newCentroids = calculateCentroids(k);
+            // Checks if the centroids are the same
+            double distance = 0;
+            for(int i = 0; i < newCentroids.length; i++) {
+                distance += calculateDistance(newCentroids[i], oldCentroids[i], false);
+            }
+            if(distance == 0) break;
+            oldCentroids = newCentroids;
         }
     }
 
@@ -46,29 +58,24 @@ public class KMeans {
     public double wcss(double[][] data, double[] closestCentroid) {
         double value = 0;
         for(int i = 0; i < data.length; i++) {
-            for(int j = 0; j < data[i].length; j++) {
-                value += Math.abs(data[i][j] - closestCentroid[j]);
-            }
+            value += calculateDistance(data[i], closestCentroid, true);
         }
         return value;
     }
 
     // Pick random observations from the dataset and make them as centroids
-    private void getCentroids(double[][] obs, int k) {
-        List<double[]> list = new ArrayList<double[]>(obs.length);
-        //System.out.println(obs.length);
-        for (double[] i : obs)
+    private double[][] getRandomCentroids(int k) {
+        List<double[]> list = new ArrayList<double[]>(points.length);
+        for (double[] i : points)
             list.add(i);
         Collections.shuffle(list);
         for(int i = 0; i < k; i++) {
             centroids[i] = list.get(i);
+            clusterCentroid.setCentroid(centroids[i]);
+            clusterCentroid.setId(i);
         }
-    }
-
-    private void addObsPoints(double[][] obs) {
-        for(int i = 0; i < obs.length; i++) {
-            points[i] = obs[i];
-        }
+        clusters.add(clusterCentroid);
+        return centroids;
     }
 
     // Calculate the min distance between random centroids and all other observations
@@ -76,44 +83,30 @@ public class KMeans {
         double max = Double.MAX_VALUE;
         double dist = 0;
         int cluster_id = 0;
-        int num = 0;
-        //System.out.println(points.length);
         for(int i = 0; i < points.length; i++) {
             for(int j = 0; j < k; j++){
-                dist = calculateDistance(centroids[j], points[i]);
-                //System.out.println(dist);
+                dist = calculateDistance(centroids[j], points[i], false);
                 if(dist < max) {
                     max = dist;
                     cluster_id = j;
-                }
-                if(dist == 0){
-                    change = true;
-                    break;
                 }
             }
             clusterCentroid.setId(cluster_id);
             clusterCentroid.setCentroid(centroids[cluster_id]);
             clusterCentroid.points.add(points[i]);
             clusters.add(clusterCentroid);
-            //printArr(clusters.get(0).points);
-            /*for(int l = 0; l < clusterCentroid.points.size(); l++) {
-                for(int m = 0; m < clusterCentroid.points.get(l).length; m++)
-                    System.out.print(clusterCentroid.points.get(l)[m] + " ");
-            }
-            System.out.println();*/
         }
-        //System.out.println(clusters.get(1).points.size());
     }
 
     // Calculates the distance between two observations and their feature vectors
-    private double calculateDistance(double[] randomCentroids, double[] obs) {
+    private double calculateDistance(double[] randomCentroids, double[] obs, boolean wcss) {
         double max = Double.MAX_VALUE;
         double dist = 0;
-        //System.out.println(randomCentroids.length);
         // Find min distance between random centroids and all of observations
         for(int i = 0; i < randomCentroids.length; i++) {
             dist += Math.pow(obs[i] - randomCentroids[i], 2);
-            dist = Math.sqrt(dist);
+            if(wcss == false)
+                dist = Math.sqrt(dist);
         }
         return dist;
     }
@@ -129,31 +122,24 @@ public class KMeans {
     }
 
     // Calculate new centroids
-    private void calculateCentroids() {
+    private double [][] calculateCentroids(int k_val) {
         for(Cluster cluster: clusters) {
             List<double[]> list = cluster.getPoints();
-            int n_points = list.size();
-            double [] sumFeatures = new double[n_points];
-            double [] newCentroids = new double[n_points];
-
             double convert [][] = convertListTo2D(list);
-
             double[][] swap = swapArr(convert);
-            // First find the sums of each column
-            for(int i = 0; i < swap.length; i++) {
-                for(int j = 0; j < swap[0].length; j++) {
-                    sumFeatures[i] += swap[i][j];
-                }
-            }
 
-            // Find the average area of the points
-            if(n_points > 0) {
-                for(int k = 0; k < swap[0].length; k++) {
-                    newCentroids[k] = sumFeatures[k]/n_points;
-                    centroids[k] = newCentroids;
+            DescriptiveStatistics stats = new DescriptiveStatistics();
+            // First find the sums of each column
+            for(int b = 0; b < k_val; b++) {
+                for(int i = 0; i < swap.length; i++) {
+                    for(int j = 0; j < swap[0].length; j++) {
+                        stats.addValue(swap[i][j]);
+                    }
+                    centroids[b][i] = stats.getMean();
                 }
             }
         }
+        return centroids;
     }
 
     // Clears the cluster list
@@ -165,12 +151,6 @@ public class KMeans {
         }
     }
 
-    /**
-     * Function:	swapArr
-     * Description:	Swaps the rows and columns of the array
-     * Parameters:	2D Array
-     * Returns:		2D Array with rows and columns switched
-     */
     public double[][] swapArr(double[][] arr) {
         // Swapping columns and rows
         double swap[][] = new double[arr[0].length][arr.length];
@@ -182,12 +162,6 @@ public class KMeans {
         return swap;
     }
 
-    /**
-     * Function:	printArr
-     * Description:	Print the array in better format
-     * Parameters:	2D Array
-     * Returns:		Void
-     */
     public void printArr(double[][] arr){
         for(int r = 0; r < arr.length; r++) {
             for(int c = 0; c < arr[r].length; c++) {
@@ -199,12 +173,6 @@ public class KMeans {
         System.out.println();
     }
 
-    /**
-     * Function:	printArr
-     * Description:	Print the array in better format
-     * Parameters:	2D Array
-     * Returns:		Void
-     */
     public void printList(List<double[]> arr){
         for(int r = 0; r < arr.size(); r++) {
             for(int c = 0; c < arr.get(r).length; c++) {

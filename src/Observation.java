@@ -78,6 +78,45 @@ public class Observation {
         return scaleArr;
     }
 
+    public double[][] abaloneDataUnzscale(String csv) throws IOException {
+        double[][] abaObser = null;
+        double[] obArray;
+
+        // Read in CSV file
+        InputStream in = sample.class.getClassLoader().getResourceAsStream(csv);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+
+        String csvRow = null;
+        int j = 0;
+
+        sample s = new sample();
+        int count = s.getDataSize(csv);
+
+        abaObser = new double[count][11];
+
+        // Put all the data of csv file into a 2D array
+        while((csvRow = reader.readLine()) != null) {
+            int i = 3;
+            obArray = new double[11];
+            String[] observation = csvRow.split(",");
+            for(String feature : observation) {
+                if(feature.equals("M"))
+                    obArray[0] = 1;
+                else if(feature.equals("F"))
+                    obArray[1] = 1;
+                else if(feature.equals("I"))
+                    obArray[2] = 1;
+                else
+                    obArray[i++] = Double.parseDouble(feature);
+            }
+            abaObser[j] = obArray;
+            j++;
+        }
+
+        reader.close();
+        return abaObser;
+    }
+
 
     /**
      * Function:	csvToArray()

@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class mainApplication {
     public static String[] csvFiles = {"abalone.csv"};
-    public static int[] k_vals = {1, 2, 4, 8, 16};
+    public static int[] k_vals = {1, 2, 4};
 
     public static void main(String[] args) throws IOException {
         // Used to find random 80% of data file
@@ -83,8 +83,9 @@ public class mainApplication {
                 double rmse = LRTrain.RMSE(xtest_clusters, ytest_clusters, LRTrain.Beta);
                 totalRMSE += rmse;
 
-                System.out.println("SSRMSE for each cluster " + i + " : " + rmse);
+                System.out.println("RMSE for each cluster " + i + " : " + rmse);
                 System.out.print("Centroids are: ");
+                //XTrain_km.printArr(XTest_km.oldCentroids);
                 double [] centroids = clusters_XTest.get(i).getCentroid();
                 for(int cent = 0; cent < centroids.length; cent++) {
                     System.out.print(centroids[cent] + " ");
@@ -100,10 +101,8 @@ public class mainApplication {
             wcss.add(XTest_km.wcss(xtest_clusters, clusters_XTest.get(0).getCentroid()));
         }
 
-        System.out.println("BEFORE");
         // Plot WCSS vs K
         s.createChart(wcss, k_vals);
-        System.out.println("AFTER");
     }
 }	
 	
