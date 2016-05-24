@@ -6,7 +6,7 @@ import java.util.Random;
 
 public class mainApplication {
     public static String[] csvFiles = {"abalone.csv"};
-    public static int[] k_vals = {1, 2, 4};
+    public static int[] k_vals = {1, 2, 4, 8, 16};
 
     public static void main(String[] args) throws IOException {
         // Used to find random 80% of data file
@@ -29,7 +29,7 @@ public class mainApplication {
         s.findSample(rnd, obsArray, percent, true);
 
         for(int j = 0; j < k_vals.length; j++) {
-            // Calculate the cluster's on the training set
+            // Perform KMeans on test and training set
             KMeans XTrain_km = new KMeans(s.xtrain, k_vals[j]);
             KMeans YTrain_km = new KMeans(s.ytrain, k_vals[j]);
             KMeans XTest_km = new KMeans(s.xtest, k_vals[j]);
@@ -45,24 +45,24 @@ public class mainApplication {
             double [][] xtest_clusters = null;
             double [][] ytest_clusters;
 
-            List<Cluster> clusters_XTrain;
-            List<Cluster> clusters_YTrain;
-            List<Cluster> clusters_XTest = null;
-            List<Cluster> clusters_YTest;
+            List<double[]> clusters_XTrain;
+            List<double[]> clusters_YTrain;
+            List<double[]> clusters_XTest = null;
+            List<double[]> clusters_YTest;
 
             double totalRMSE = 0.0;
             System.out.println("K VALUE IS " + k_vals[j] + " : ");
 
             for(int i = 0; i < k_vals[j]; i++) {
-                clusters_XTrain = XTrain_km.getCluster();
-                clusters_YTrain = YTrain_km.getCluster();
-                clusters_XTest = XTest_km.getCluster();
-                clusters_YTest = YTest_km.getCluster();
+                clusters_XTrain = XTrain_km.clusters;
+                clusters_YTrain = YTrain_km.clusters;
+                clusters_XTest = XTest_km.clusters;
+                clusters_YTest = YTest_km.clusters;
 
-                xtrain_clusters = XTrain_km.convertListTo2D(clusters_XTrain.get(i).points);
-                ytrain_clusters = YTrain_km.convertListTo2D(clusters_YTrain.get(i).points);
-                xtest_clusters = XTest_km.convertListTo2D(clusters_XTest.get(i).points);
-                ytest_clusters = YTest_km.convertListTo2D(clusters_YTest.get(i).points);
+                xtrain_clusters = XTrain_km.convertListTo2D(clusters_XTrain);
+                ytrain_clusters = YTrain_km.convertListTo2D(clusters_YTrain);
+                xtest_clusters = XTest_km.convertListTo2D(clusters_XTest);
+                ytest_clusters = YTest_km.convertListTo2D(clusters_YTest);
 
                 // For each cluster, calculate a QR decomposition and associate
                 // it with the cluster
@@ -85,20 +85,19 @@ public class mainApplication {
 
                 System.out.println("RMSE for each cluster " + i + " : " + rmse);
                 System.out.print("Centroids are: ");
-                //XTrain_km.printArr(XTest_km.oldCentroids);
-                double [] centroids = clusters_XTest.get(i).getCentroid();
+                double [] centroids = clusters_XTest.get(i);
                 for(int cent = 0; cent < centroids.length; cent++) {
                     System.out.print(centroids[cent] + " ");
                 }
                 System.out.println();
-                System.out.println("WCSS: " + XTest_km.wcss(xtest_clusters, clusters_XTest.get(i).getCentroid()));
-                clusters_XTest.get(i).calMeanAndStd();
-                System.out.println("MEAN: " + clusters_XTest.get(i).getMean());
-                System.out.println("STD: " + clusters_XTest.get(i).getStd());
+                System.out.println("WCSS: " + XTest_km.wcss(xtest_clusters[i], clusters_XTest.get(i)));
+                //clusters_XTest.get(i).calMeanAndStd();
+                //System.out.println("MEAN: " + clusters_XTest.get(i).getMean());
+                //System.out.println("STD: " + clusters_XTest.get(i).getStd());
+                wcss.add(XTest_km.wcss(xtest_clusters[i], clusters_XTest.get(i)));
             }
 
             System.out.println("Total RMSE: " + totalRMSE + "\n\n");
-            wcss.add(XTest_km.wcss(xtest_clusters, clusters_XTest.get(0).getCentroid()));
         }
 
         // Plot WCSS vs K
