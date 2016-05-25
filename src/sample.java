@@ -102,7 +102,7 @@ public class sample {
         }
     }
 
-    public void createChart(List<Double> list, int[] trials) {
+    public void createChart(List<Double> list, int[] trials, String title) {
         XYSeriesCollection dataSet = new XYSeriesCollection();
         XYSeries series = new XYSeries("Plotted Points");
 
@@ -114,7 +114,7 @@ public class sample {
 
         dataSet.addSeries(series);
 
-        String chartTitle = "WCSS vs K Graph";
+        String chartTitle = title;
         String xAxisLabel = "K";
         String yAxisLabel = "WCSS";
 
@@ -128,7 +128,7 @@ public class sample {
 
         try {
             ChartUtilities.saveChartAsJPEG(
-                    new File("C:\\Users\\Alicia\\Desktop\\chart.jpg"),
+                    new File("C:\\Users\\Alicia\\Desktop\\" + title + ".jpg"),
                     chart, 500, 300);
             System.out.println("Charted created!");
         } catch (IOException e) {

@@ -246,61 +246,61 @@ class confusionMatrix {
      * 				double[] trainPt --	as a point on the plane
      * Returns:		A predicted classifier number
      */
-    public double kNearestNeighbor(double[] testPt, double[][] trainPt, int k) {
-        List<Result> resultList = new ArrayList<Result>();
-
-        // Calculate the Euclidean distance of two points
-        for(int row = 0; row < trainPt.length; row++) {
-            double dist = 0.0;
-            int classification = 0;
-            for(int col = 0; col < trainPt[row].length - 1; col++) {
-                dist += Math.pow(trainPt[row][col] - testPt[col], 2);
-                classification++;
-            }
-            double distance = Math.sqrt(dist);
-            resultList.add(new Result(distance, trainPt[row][classification]));
-        }
-
-        // Sort the array based on distances in ascending order
-        Collections.sort(resultList, new DistanceComparator());
-
-        double[] knn = new double[k];
-        for(int x = 0; x < k; x++){
-            knn[x] = resultList.get(x).classifier;
-        }
-
-        // Find the most common element in array
-        double majElem = majorityElement(knn);
-
-        // Return the smallest distance element
-        return majElem;
-    }
-
-
-    /**
-     * Function:	majorityElement()
-     * Description:	Find the highest number in any given array
-     * Parameters:	a	-- the array to look for the highest number in
-     * Returns:		The highest number
-     */
-    public double majorityElement(double[] a) {
-        int count = 1, tempCount;
-        double popular = a[0];
-        double temp = 0;
-        for (int i = 0; i < (a.length - 1); i++) {
-            temp = a[i];
-            tempCount = 0;
-            for (int j = 1; j < a.length; j++)
-            {
-                if (temp == a[j])
-                    tempCount++;
-            }
-            if (tempCount > count)
-            {
-                popular = temp;
-                count = tempCount;
-            }
-        }
-        return popular;
-    }
+//    public double kNearestNeighbor(double[] testPt, double[][] trainPt, int k) {
+//        List<Result> resultList = new ArrayList<Result>();
+//
+//        // Calculate the Euclidean distance of two points
+//        for(int row = 0; row < trainPt.length; row++) {
+//            double dist = 0.0;
+//            int classification = 0;
+//            for(int col = 0; col < trainPt[row].length - 1; col++) {
+//                dist += Math.pow(trainPt[row][col] - testPt[col], 2);
+//                classification++;
+//            }
+//            double distance = Math.sqrt(dist);
+//            resultList.add(new Result(distance, trainPt[row][classification]));
+//        }
+//
+//        // Sort the array based on distances in ascending order
+//        Collections.sort(resultList, new DistanceComparator());
+//
+//        double[] knn = new double[k];
+//        for(int x = 0; x < k; x++){
+//            knn[x] = resultList.get(x).classifier;
+//        }
+//
+//        // Find the most common element in array
+//        double majElem = majorityElement(knn);
+//
+//        // Return the smallest distance element
+//        return majElem;
+//    }
+//
+//
+//    /**
+//     * Function:	majorityElement()
+//     * Description:	Find the highest number in any given array
+//     * Parameters:	a	-- the array to look for the highest number in
+//     * Returns:		The highest number
+//     */
+//    public double majorityElement(double[] a) {
+//        int count = 1, tempCount;
+//        double popular = a[0];
+//        double temp = 0;
+//        for (int i = 0; i < (a.length - 1); i++) {
+//            temp = a[i];
+//            tempCount = 0;
+//            for (int j = 1; j < a.length; j++)
+//            {
+//                if (temp == a[j])
+//                    tempCount++;
+//            }
+//            if (tempCount > count)
+//            {
+//                popular = temp;
+//                count = tempCount;
+//            }
+//        }
+//        return popular;
+//    }
 }

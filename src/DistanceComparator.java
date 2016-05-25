@@ -9,9 +9,9 @@ import java.util.Comparator;
  * Attributes:	compare		--  function to override in order to sort distances
  * 								in ascending order
  */
-public class DistanceComparator implements Comparator<Result> {
+public class DistanceComparator implements Comparator<ClosestCluster> {
     @Override
-    public int compare(Result a, Result b) {
+    public int compare(ClosestCluster a, ClosestCluster b) {
         return a.distance < b.distance ? -1 : a.distance == b.distance ? 0 : 1;
     }
 }

@@ -3,6 +3,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Alicia on 5/4/2016.
@@ -249,5 +252,40 @@ public class Observation {
 
         reader.close();
         return dataSize;
+    }
+
+    public void printList(List<double[]> arr){
+        for(int r = 0; r < arr.size(); r++) {
+            for(int c = 0; c < arr.get(r).length; c++) {
+                System.out.print(arr.get(r)[c] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println();
+        System.out.println();
+    }
+
+    public List<double[]> kNearestNeighbor(double[]testPt, List<List<double[]>> trainPt, int k) {
+        List<ClosestCluster> resultList = new ArrayList<ClosestCluster>();
+
+        double distance = 0;
+
+        // Calculate the Euclidean distance of two points
+        for(int cluster = 0; cluster < trainPt.size(); cluster++) {
+            double dist = 0.0;
+            for(int row = 0; row < trainPt.get(cluster).size(); row++) {
+                for(int col = 0; col < trainPt.get(cluster).get(row).length; col++) {
+                    dist += Math.pow(trainPt.get(cluster).get(row)[col] - testPt[col], 2);
+                }
+                distance = Math.sqrt(dist);
+            }
+            resultList.add(new ClosestCluster(distance, trainPt.get(cluster)));
+        }
+
+        // Sort the array based on distances in ascending order
+        Collections.sort(resultList, new DistanceComparator());
+
+        // Return the smallest distance element
+        return resultList.get(0).clusterList;
     }
 }
